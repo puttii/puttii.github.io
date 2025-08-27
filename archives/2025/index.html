@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Archives | Putti&#39;s Blog</title>
+    <title>Archives | 进击のPutti</title>
     <meta name="author" content="Putti" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -64,7 +64,7 @@
         <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
     <nav id="desktop-menu">
         <a class="title" href="/">
-            <span>PUTTI&#39;S BLOG</span>
+            <span>进击のPUTTI</span>
         </a>
         
         <a href="/">
@@ -96,7 +96,7 @@
     <nav id="mobile-menu">
         <div class="title" @click="showMenuItems = !showMenuItems">
             <i class="fa-solid fa-bars fa-fw"></i>
-            <span>&emsp;PUTTI&#39;S BLOG</span>
+            <span>&emsp;进击のPUTTI</span>
         </div>
         <transition name="slide">
             <div class="items" v-show="showMenuItems">
@@ -181,7 +181,7 @@
     <div id="footer-wrap">
         <div>
             &copy;
-            2022 - 2025 Putti&#39;s Blog
+            2022 - 2025 进击のPutti
             <span id="footer-icon">
                 <i class="fa-solid fa-font-awesome fa-fw"></i>
             </span>
@@ -212,5 +212,10 @@
     ></canvas>
     <script src="https://s4.zstatic.net/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script src="/js/fireworks.min.js"></script>
+    <canvas
+        id="background"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1"
+    ></canvas>
+    <script src="/js/background.min.js"></script>
 </body>
 </html>
