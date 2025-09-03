@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Archives | 进击のPutti</title>
+    <title>多人游戏服务器架构 | 进击のPutti</title>
     <meta name="author" content="Putti" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -42,6 +42,10 @@
 
 
 <script src="/js/lib/preview.js"></script>
+
+
+
+
 
 
 
@@ -155,40 +159,76 @@
 </transition>
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
-            
-<div id="archives">
-    
-    <div id="timeline-wrap" ref="timeline">
+            <div class="article">
+    <div>
+        <h1>多人游戏服务器架构</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/9/3
+        </span>
         
-        <div class="timeline" data-title="helloworld">
-            <div class="timeline-tail"></div>
-            <div class="timeline-content">
-                <div class="item-time">2025/8/24</div>
-                <a href="/2025/08/24/hello-world/">
-                    <h3>Hello World</h3>
-                </a>
-                <div class="info">
-                    
-                    
-                </div>
-            </div>
-        </div>
-        
-        <div class="timeline" data-title="多人游戏服务器架构">
-            <div class="timeline-tail"></div>
-            <div class="timeline-content">
-                <div class="item-time">2025/9/3</div>
-                <a href="/2025/09/03/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9E%B6%E6%9E%84/">
-                    <h3>多人游戏服务器架构</h3>
-                </a>
-                <div class="info">
-                    
-                    
-                </div>
-            </div>
-        </div>
         
     </div>
+    
+    <div class="content" v-pre>
+        <h2 id="Dedicated-Server"><a href="#Dedicated-Server" class="headerlink" title="Dedicated Server"></a>Dedicated Server</h2><p><em><strong>Dedicated Server 通常运行在一台专门的服务器上，与任何玩家都不直接关联。因此，即使所有玩家离开，服务器也会继续运行。</strong></em></p>
+<h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><h4 id="更高的性能和稳定性："><a href="#更高的性能和稳定性：" class="headerlink" title="更高的性能和稳定性："></a>更高的性能和稳定性：</h4><p>因为服务器专注于处理游戏逻辑，不需要处理图形渲染，所以它的性能比 Listen Server 更高，适合处理更多的玩家。</p>
+<h4 id="没有偏向性："><a href="#没有偏向性：" class="headerlink" title="没有偏向性："></a>没有偏向性：</h4><p>所有玩家都通过网络连接到服务器，因此不会有一个玩家拥有延迟优势。</p>
+<h4 id="额外成本："><a href="#额外成本：" class="headerlink" title="额外成本："></a>额外成本：</h4><p>需要租用或自建服务器硬件来运行，这会产生额外的成本。</p>
+<h4 id="使用场景："><a href="#使用场景：" class="headerlink" title="使用场景："></a>使用场景：</h4><p>大型多人游戏：例如 MMO、战术射击游戏等，需要同时管理大量玩家的游戏。</p>
+<p>任何对稳定性有较高要求的多人游戏：比如需要确保游戏持续运行，即使有玩家断开连接。</p>
+<p>Dedicated Server 是一个专门的服务器，它运行游戏的服务器端逻辑，但没有图形界面（没有渲染和输入）。这种服务器只负责处理游戏逻辑和同步状态。</p>
+<h2 id="Listen-Server"><a href="#Listen-Server" class="headerlink" title="Listen Server"></a>Listen Server</h2><p><em><strong>某个玩家主机就是服务器，这个玩家可以和其他加入的玩家互动。</strong></em></p>
+<h3 id="特点-1"><a href="#特点-1" class="headerlink" title="特点"></a>特点</h3><h4 id="即插即用："><a href="#即插即用：" class="headerlink" title="即插即用："></a>即插即用：</h4><p>Listen Server 非常适合那些临时组队的多人游戏，因为一个玩家只需开启游戏，其他玩家就可以加入。</p>
+<h4 id="成本低："><a href="#成本低：" class="headerlink" title="成本低："></a>成本低：</h4><p>因为服务器运行在玩家的机器上，通常无需额外租用服务器硬件。</p>
+<h4 id="延迟问题："><a href="#延迟问题：" class="headerlink" title="延迟问题："></a>延迟问题：</h4><p>由于主机玩家就是服务器，主机玩家几乎没有延迟，而其他玩家会依赖于主机玩家的网络状况。如果主机玩家的网络不好或者机器性能不足，其他玩家的体验也会受到影响。</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Dedicated Server</th>
+<th>Listen Server</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>运行位置</td>
+<td>玩家主机充当服务器</td>
+<td>专用服务器硬件</td>
+</tr>
+<tr>
+<td>延迟优势</td>
+<td>主机玩家没有延迟</td>
+<td>所有玩家延迟相同</td>
+</tr>
+<tr>
+<td>性能和稳定性</td>
+<td>受主机玩家硬件和网络影响</td>
+<td>高性能和高稳定性</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>没有额外服务器成本</td>
+<td>需要租用或自建服务器</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>小型联机游戏、朋友间的合作游戏</td>
+<td>大型多人游戏或需要高稳定性的游戏</td>
+</tr>
+</tbody></table>
+
+    </div>
+    
+    
+    
+    
+    
+    
+    
 </div>
 
             <footer id="footer">
@@ -227,6 +267,12 @@
         
     </div>
     <script src="/js/main.js"></script>
+    
+    
+
+
+
+
     
     <canvas
         id="fireworks"
