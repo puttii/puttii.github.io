@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>多人游戏服务器架构 | 进击のPutti</title>
+    <title>多人游戏服务器 | 进击のPutti</title>
     <meta name="author" content="Putti" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -161,7 +161,7 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>多人游戏服务器架构</h1>
+        <h1>多人游戏服务器</h1>
     </div>
     <div class="info">
         <span class="date">
@@ -175,7 +175,9 @@
     </div>
     
     <div class="content" v-pre>
-        <h2 id="Dedicated-Server"><a href="#Dedicated-Server" class="headerlink" title="Dedicated Server"></a>Dedicated Server</h2><p><em><strong>Dedicated Server 通常运行在一台专门的服务器上，与任何玩家都不直接关联。因此，即使所有玩家离开，服务器也会继续运行。</strong></em></p>
+        <p>本节讲讲Dedicated Server和Listen Server</p>
+<span id="more"></span>
+<h2 id="Dedicated-Server"><a href="#Dedicated-Server" class="headerlink" title="Dedicated Server"></a>Dedicated Server</h2><p><em><strong>Dedicated Server 通常运行在一台专门的服务器上，与任何玩家都不直接关联。因此，即使所有玩家离开，服务器也会继续运行。</strong></em></p>
 <h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><h4 id="更高的性能和稳定性："><a href="#更高的性能和稳定性：" class="headerlink" title="更高的性能和稳定性："></a>更高的性能和稳定性：</h4><p>因为服务器专注于处理游戏逻辑，不需要处理图形渲染，所以它的性能比 Listen Server 更高，适合处理更多的玩家。</p>
 <h4 id="没有偏向性："><a href="#没有偏向性：" class="headerlink" title="没有偏向性："></a>没有偏向性：</h4><p>所有玩家都通过网络连接到服务器，因此不会有一个玩家拥有延迟优势。</p>
 <h4 id="额外成本："><a href="#额外成本：" class="headerlink" title="额外成本："></a>额外成本：</h4><p>需要租用或自建服务器硬件来运行，这会产生额外的成本。</p>

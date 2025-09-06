@@ -203,175 +203,7 @@
     <div class="description">
         <div class="content" v-pre>
             
-            <h2 id="MVC架构在UI系统中的实践"><a href="#MVC架构在UI系统中的实践" class="headerlink" title="MVC架构在UI系统中的实践"></a>MVC架构在UI系统中的实践</h2><p>在游戏开发中，用户界面 (UI) 与游戏逻辑的耦合往往是代码维护的痛点。UE的 UI 系统结合 MVC (Model-View-Controller) 架构模式，能有效解决这一问题，实现 UI 与游戏逻辑的解耦。</p>
-<h3 id="MVC架构简介："><a href="#MVC架构简介：" class="headerlink" title="MVC架构简介："></a>MVC架构简介：</h3><p>MVC 有三个核心组件：</p>
-<ul>
-<li>**Model (模型)**：管理应用数据和业务逻辑，独立于 UI。</li>
-</ul>
-<ul>
-<li>**View (视图)**：负责数据展示和用户交互，不包含业务逻辑。</li>
-</ul>
-<ul>
-<li>**Controller (控制器)**：作为中间层，协调 Model 和 View 之间的通信。</li>
-</ul>
-<h4 id="Model：数据业务与逻辑层"><a href="#Model：数据业务与逻辑层" class="headerlink" title="Model：数据业务与逻辑层"></a>Model：数据业务与逻辑层</h4><p>在GAS中，AttributeSet是理想的Model实现，负责数据存储、数据合法性检查、数据网络同步等。</p>
-<p><em><strong>AuraAttributeSet.h</strong></em></p>
-<pre><code class="cpp">#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
-    GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
-    GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
-    GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
-    GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
-
-UCLASS()
-class AURA_API UAuraAttributeSet : public UAttributeSet
-&#123;
-    GENERATED_BODY()
-public:
-    UAuraAttributeSet();
-
-    // 注册需要网络同步的属性
-    virtual void GetLifetimeReplicatedProps(TArray&lt;class FLifetimeProperty&gt;&amp; OutLifetimeProps) const override;
-
-    // 属性改变时，非权威端(通常客户端)执行 OnRep_xxx
-    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Health, Category=&quot;Vital Attributes&quot;)
-    FGameplayAttributeData Health;
-    // 数据访问器
-    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, Health);
-
-    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category=&quot;Vital Attributes&quot;)
-    FGameplayAttributeData MaxHealth;
-    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, MaxHealth);
-
-    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Mana, Category=&quot;Vital Attributes&quot;)
-    FGameplayAttributeData Mana;
-    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, Mana);
-
-    UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxMana, Category=&quot;Vital Attributes&quot;)
-    FGameplayAttributeData MaxMana;
-    ATTRIBUTE_ACCESSORS(UAuraAttributeSet, MaxMana);
-    
-    UFUNCTION()
-    void OnRep_Health(const FGameplayAttributeData&amp; OldHealth) const;
-    UFUNCTION()
-    void OnRep_MaxHealth(const FGameplayAttributeData&amp; OldMaxHealth) const;
-    UFUNCTION()
-    void OnRep_Mana(const FGameplayAttributeData&amp; OldMana) const;
-    UFUNCTION()
-    void OnRep_MaxMana(const FGameplayAttributeData&amp; OldMaxMana) const;
-&#125;;
-</code></pre>
-<p><em><strong>AuraAttributeSet.cpp</strong></em></p>
-<pre><code class="cpp">UAuraAttributeSet::UAuraAttributeSet()
-&#123;
-    InitHealth(50.f);
-    InitMaxHealth(100.f);
-    InitMana(100.f);
-    InitMaxMana(200.f);
-&#125;
-
-void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray&lt;class FLifetimeProperty&gt;&amp; OutLifetimeProps) const
-&#123;
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Health, COND_None, REPNOTIFY_Always);
-    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
-    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Mana, COND_None, REPNOTIFY_Always);
-    DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
-&#125;
-
-void UAuraAttributeSet::OnRep_Health(const FGameplayAttributeData&amp; OldHealth) const
-&#123;
-    // 自动调用 ASC 的属性变化通知的宏，保证同步的属性能正确触发 GAS 的事件链（UI 更新、GE 监听、蓝图回调等）。
-    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, Health, OldHealth);
-&#125;
-
-void UAuraAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData&amp; OldMaxHealth) const
-&#123;
-    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, Health, OldMaxHealth);
-&#125;
-
-void UAuraAttributeSet::OnRep_Mana(const FGameplayAttributeData&amp; OldMana) const
-&#123;
-    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, Mana, OldMana);
-&#125;
-
-void UAuraAttributeSet::OnRep_MaxMana(const FGameplayAttributeData&amp; OldMaxMana) const
-&#123;
-    GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, MaxMana, OldMaxMana);
-&#125;
-</code></pre>
-<h4 id="View："><a href="#View：" class="headerlink" title="View："></a>View：</h4><p>负责渲染 UI 元素，只与controller对接，绑定controller的事件委托以接收数据更新，它处理纯粹的 UI 交互 (如动画、过渡效果)，不直接修改数据或包含业务逻辑。<br><em><strong>AuraHUD.cpp</strong></em></p>
-<pre><code class="cpp">void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS)
-&#123;
-    // 检查蓝图中是否设置
-    checkf(OverlayWidgetClass, TEXT(&quot;Overlay widget class uninitialized, please fill out BP_AuraHUD&quot;));
-    checkf(OverlayWidgetControllerClass, TEXT(&quot;Overlay widget controller class uninitialized, please fill out BP_AuraHUD&quot;));
-    // 创建 widget
-    UUserWidget* Widget = CreateWidget&lt;UUserWidget&gt;(GetWorld(), OverlayWidgetClass);
-    OverlayWidget = Cast&lt;UAuraUserWidget&gt;(Widget);
-    // 创建 Controller参数结构体
-    const FWidgetControllerParams WidgetControllerParams(PC, PS, ASC, AS);
-    // 创建 OverlayWidgetController并绑定回调
-    UOverlayWidgetController* WidgetController = GetOverlayWidgetController(WidgetControllerParams);
-    OverlayWidget-&gt;SetWidgetController(WidgetController);
-    // 初始化health，broadcast health
-    WidgetController-&gt;BroadcastInitialValues();
-    
-    Widget-&gt;AddToViewport();
-&#125;
-UOverlayWidgetController* AAuraHUD::GetOverlayWidgetController(const FWidgetControllerParams&amp; WCParams)
-&#123;
-    if (OverlayWidgetController == nullptr)
-    &#123;
-        OverlayWidgetController = NewObject&lt;UOverlayWidgetController&gt;(this, OverlayWidgetControllerClass);
-        OverlayWidgetController-&gt;SetWidgetControllerParams(WCParams);
-        // 绑定回调
-        OverlayWidgetController-&gt;BindCallbacksToDependencies();
-        return OverlayWidgetController;
-    &#125;
-    return OverlayWidgetController;
-&#125;
-</code></pre>
-<h4 id="Controller：作为Model和View之间的桥梁"><a href="#Controller：作为Model和View之间的桥梁" class="headerlink" title="Controller：作为Model和View之间的桥梁"></a>Controller：作为Model和View之间的桥梁</h4><p>监听Model的数据变化，数据变化时发送广播，通知View蓝图更新 UI。<br><em><strong>OverlayWidgetController.cpp</strong></em></p>
-<pre><code class="cpp">void UOverlayWidgetController::BroadcastInitialValues()
-&#123;
-    const UAuraAttributeSet* AuraAttributeSet = CastChecked&lt;UAuraAttributeSet&gt;(AttributeSet);
-    OnHealthChanged.Broadcast(AuraAttributeSet-&gt;GetHealth());
-    OnMaxHealthChanged.Broadcast(AuraAttributeSet-&gt;GetMaxHealth());
-    OnManaChanged.Broadcast(AuraAttributeSet-&gt;GetMana());
-    OnMaxManaChanged.Broadcast(AuraAttributeSet-&gt;GetMaxMana());
-&#125;
-void UOverlayWidgetController::BindCallbacksToDependencies()
-&#123;
-    const UAuraAttributeSet* AuraAttributeSet = CastChecked&lt;UAuraAttributeSet&gt;(AttributeSet);
-    // 为 Health 属性注册一个变化监听器，当 Health 值发生改变时，自动调用 UOverlayWidgetController 中的 HealthChanged 函数。
-    AbilitySystemComponent-&gt;GetGameplayAttributeValueChangeDelegate(
-        AuraAttributeSet-&gt;GetHealthAttribute()).AddUObject(this, &amp;UOverlayWidgetController::HealthChanged);
-    AbilitySystemComponent-&gt;GetGameplayAttributeValueChangeDelegate(
-        AuraAttributeSet-&gt;GetMaxHealthAttribute()).AddUObject(this, &amp;UOverlayWidgetController::MaxHealthChanged);
-    AbilitySystemComponent-&gt;GetGameplayAttributeValueChangeDelegate(
-        AuraAttributeSet-&gt;GetManaAttribute()).AddUObject(this, &amp;UOverlayWidgetController::ManaChanged);
-    AbilitySystemComponent-&gt;GetGameplayAttributeValueChangeDelegate(
-        AuraAttributeSet-&gt;GetMaxManaAttribute()).AddUObject(this, &amp;UOverlayWidgetController::MaxManaChanged);
-&#125;
-void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData&amp; Data) const
-&#123;
-    // Data 是自动传入的。Health变化时广播，蓝图接收到后更新 UI
-    OnHealthChanged.Broadcast(Data.NewValue);
-&#125;
-void UOverlayWidgetController::MaxHealthChanged(const FOnAttributeChangeData&amp; Data) const
-&#123;
-    OnMaxHealthChanged.Broadcast(Data.NewValue);
-&#125;
-void UOverlayWidgetController::ManaChanged(const FOnAttributeChangeData&amp; Data) const
-&#123;
-    OnManaChanged.Broadcast(Data.NewValue);
-&#125;
-void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData&amp; Data) const
-&#123;
-    OnMaxManaChanged.Broadcast(Data.NewValue);
-&#125;
-</code></pre>
-
+            <p>在游戏开发中，用户界面 (UI) 与游戏逻辑的耦合往往是代码维护的痛点。UE的 UI 系统结合 MVC (Model-View-Controller) 架构模式，能有效解决这一问题，实现 UI 与游戏逻辑的解耦。</p>
             
         </div>
     </div>
@@ -384,8 +216,8 @@ void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData&amp; 
 </div>
 
 <div class="post">
-    <a href="/2025/09/03/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9E%B6%E6%9E%84/">
-        <h2 class="post-title">多人游戏服务器架构</h2>
+    <a href="/2025/09/03/%E4%B8%A4%E7%A7%8D%E6%9C%8D%E5%8A%A1%E5%99%A8/">
+        <h2 class="post-title">多人游戏服务器</h2>
     </a>
     <div class="category-and-date">
         
@@ -401,52 +233,7 @@ void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData&amp; 
     <div class="description">
         <div class="content" v-pre>
             
-            <h2 id="Dedicated-Server"><a href="#Dedicated-Server" class="headerlink" title="Dedicated Server"></a>Dedicated Server</h2><p><em><strong>Dedicated Server 通常运行在一台专门的服务器上，与任何玩家都不直接关联。因此，即使所有玩家离开，服务器也会继续运行。</strong></em></p>
-<h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><h4 id="更高的性能和稳定性："><a href="#更高的性能和稳定性：" class="headerlink" title="更高的性能和稳定性："></a>更高的性能和稳定性：</h4><p>因为服务器专注于处理游戏逻辑，不需要处理图形渲染，所以它的性能比 Listen Server 更高，适合处理更多的玩家。</p>
-<h4 id="没有偏向性："><a href="#没有偏向性：" class="headerlink" title="没有偏向性："></a>没有偏向性：</h4><p>所有玩家都通过网络连接到服务器，因此不会有一个玩家拥有延迟优势。</p>
-<h4 id="额外成本："><a href="#额外成本：" class="headerlink" title="额外成本："></a>额外成本：</h4><p>需要租用或自建服务器硬件来运行，这会产生额外的成本。</p>
-<h4 id="使用场景："><a href="#使用场景：" class="headerlink" title="使用场景："></a>使用场景：</h4><p>大型多人游戏：例如 MMO、战术射击游戏等，需要同时管理大量玩家的游戏。</p>
-<p>任何对稳定性有较高要求的多人游戏：比如需要确保游戏持续运行，即使有玩家断开连接。</p>
-<p>Dedicated Server 是一个专门的服务器，它运行游戏的服务器端逻辑，但没有图形界面（没有渲染和输入）。这种服务器只负责处理游戏逻辑和同步状态。</p>
-<h2 id="Listen-Server"><a href="#Listen-Server" class="headerlink" title="Listen Server"></a>Listen Server</h2><p><em><strong>某个玩家主机就是服务器，这个玩家可以和其他加入的玩家互动。</strong></em></p>
-<h3 id="特点-1"><a href="#特点-1" class="headerlink" title="特点"></a>特点</h3><h4 id="即插即用："><a href="#即插即用：" class="headerlink" title="即插即用："></a>即插即用：</h4><p>Listen Server 非常适合那些临时组队的多人游戏，因为一个玩家只需开启游戏，其他玩家就可以加入。</p>
-<h4 id="成本低："><a href="#成本低：" class="headerlink" title="成本低："></a>成本低：</h4><p>因为服务器运行在玩家的机器上，通常无需额外租用服务器硬件。</p>
-<h4 id="延迟问题："><a href="#延迟问题：" class="headerlink" title="延迟问题："></a>延迟问题：</h4><p>由于主机玩家就是服务器，主机玩家几乎没有延迟，而其他玩家会依赖于主机玩家的网络状况。如果主机玩家的网络不好或者机器性能不足，其他玩家的体验也会受到影响。</p>
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>Dedicated Server</th>
-<th>Listen Server</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>运行位置</td>
-<td>玩家主机充当服务器</td>
-<td>专用服务器硬件</td>
-</tr>
-<tr>
-<td>延迟优势</td>
-<td>主机玩家没有延迟</td>
-<td>所有玩家延迟相同</td>
-</tr>
-<tr>
-<td>性能和稳定性</td>
-<td>受主机玩家硬件和网络影响</td>
-<td>高性能和高稳定性</td>
-</tr>
-<tr>
-<td>成本</td>
-<td>没有额外服务器成本</td>
-<td>需要租用或自建服务器</td>
-</tr>
-<tr>
-<td>使用场景</td>
-<td>小型联机游戏、朋友间的合作游戏</td>
-<td>大型多人游戏或需要高稳定性的游戏</td>
-</tr>
-</tbody></table>
-
+            <p>本节讲讲Dedicated Server和Listen Server</p>
             
         </div>
     </div>
@@ -455,50 +242,7 @@ void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData&amp; 
         
         
     </div>
-    <a href="/2025/09/03/%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9E%B6%E6%9E%84/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2025/08/24/hello-world/">
-        <h2 class="post-title">Hello World</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/8/24
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre><code class="bash">$ hexo new &quot;My New Post&quot;
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre><code class="bash">$ hexo server
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre><code class="bash">$ hexo generate
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre><code class="bash">$ hexo deploy
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        
-        
-    </div>
-    <a href="/2025/08/24/hello-world/" class="go-post">阅读全文</a>
+    <a href="/2025/09/03/%E4%B8%A4%E7%A7%8D%E6%9C%8D%E5%8A%A1%E5%99%A8/" class="go-post">阅读全文</a>
 </div>
 
 
